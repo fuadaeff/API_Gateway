@@ -22,16 +22,14 @@ public class CorrelationIdFilter extends AbstractGatewayFilterFactory<Correlatio
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            String correlationId = exchange.getRequest().getHeaders()
-                    .getFirst("X-Correlation-Id");
+            String correlationId = exchange.getRequest().getHeaders().getFirst("X-Correlation-Id");
 
             if (correlationId == null || correlationId.isBlank()) {
                 correlationId = UUID.randomUUID().toString();
             }
 
             final String finalCorrelationId = correlationId;
-            log.info("CorrelationId: {} | path: {}", finalCorrelationId,
-                    exchange.getRequest().getPath());
+            log.info("CorrelationId: {} | path: {}", finalCorrelationId, exchange.getRequest().getPath());
 
             ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                     .header("X-Correlation-Id", finalCorrelationId)
@@ -39,8 +37,7 @@ public class CorrelationIdFilter extends AbstractGatewayFilterFactory<Correlatio
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build())
                     .then(Mono.fromRunnable(() ->
-                            exchange.getResponse().getHeaders()
-                                    .add("X-Correlation-Id", finalCorrelationId)
+                            exchange.getResponse().getHeaders().add("X-Correlation-Id", finalCorrelationId)
                     ));
         };
     }
